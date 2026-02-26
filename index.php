@@ -62,12 +62,68 @@
         <!-- Form -->
         <form id="cipher-form" onsubmit="return false;">
 
-            <!-- Input Teks -->
+            <!-- Jenis Input -->
             <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">Jenis Input</label>
+                <div class="flex gap-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="input_type" value="text" checked class="form-radio text-gray-900 focus:ring-gray-900" onchange="toggleInputType()">
+                        <span class="ml-2 text-sm text-gray-700">Teks</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="input_type" value="file" class="form-radio text-gray-900 focus:ring-gray-900" onchange="toggleInputType()">
+                        <span class="ml-2 text-sm text-gray-700">File</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Input Teks -->
+            <div id="input-text-container" class="mb-5">
                 <label for="input-text" class="block text-sm font-medium text-gray-700 mb-1.5">Teks</label>
                 <textarea id="input-text" name="text" rows="4"
                     class="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors resize-none"
                     placeholder="Masukkan teks yang akan diproses..."></textarea>
+            </div>
+
+            <!-- Input File -->
+            <div id="input-file-container" class="mb-5 hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">File</label>
+                
+                <div class="flex items-center justify-center w-full">
+                    <label for="input-file" id="file-drop-area" class="flex flex-col items-center justify-center w-full min-h-[140px] border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <!-- State: Belum ada file -->
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6" id="file-upload-prompt">
+                            <svg class="w-8 h-8 mb-3 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                            </svg>
+                            <p class="mb-1 text-sm text-gray-600"><span class="font-medium text-gray-900">Klik untuk mengunggah</span> file</p>
+                            <p class="text-xs text-gray-400 mb-2">Maksimal ukuran file: 2 MB</p>
+                        </div>
+                        
+                        <!-- State: File terpilih -->
+                        <div id="file-info" class="hidden flex-col items-center justify-center pt-5 pb-6 w-full px-4 text-center">
+                            <svg class="w-8 h-8 mb-2 text-gray-900" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                            </svg>
+                            <p id="file-name-display" class="text-sm font-medium text-gray-900 truncate w-full max-w-[240px]"></p>
+                            <p id="file-size-display" class="text-xs text-gray-500 mt-0.5 mb-3"></p>
+                            
+                            <button type="button" onclick="clearFileInput(event)" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors">
+                                <svg class="w-3.5 h-3.5 mr-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                </svg>
+                                Hapus File
+                            </button>
+                        </div>
+                        
+                        <input id="input-file" name="file" type="file" class="hidden" onchange="handleFileSelect(this)" />
+                    </label>
+                </div>
+                
+                <p class="text-xs text-gray-500 mt-2.5 bg-gray-100 p-2.5 rounded-md border border-gray-200">
+                    <span class="font-medium text-gray-700">Enkripsi:</span> Pilih file biner apa saja (contoh: gambar, dokumen, dll).<br>
+                    <span class="font-medium text-gray-700">Dekripsi:</span> Pilih file <code class="bg-gray-200 px-1 py-0.5 rounded text-gray-800">.txt</code> hasil enkripsi sebelumnya.
+                </p>
             </div>
 
             <!-- Key Fields: Vigenere -->
@@ -292,6 +348,103 @@
     <script>
         let currentCipher = 'vigenere';
 
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        function handleFileSelect(input) {
+            const promptEl = document.getElementById('file-upload-prompt');
+            const infoEl = document.getElementById('file-info');
+            const nameEl = document.getElementById('file-name-display');
+            const sizeEl = document.getElementById('file-size-display');
+            const dropArea = document.getElementById('file-drop-area');
+
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                nameEl.textContent = file.name;
+                sizeEl.textContent = formatBytes(file.size);
+                
+                if (file.size > 2 * 1024 * 1024) {
+                    sizeEl.innerHTML = `<span class="text-red-500 font-medium">Ukuran file terlalu besar (${formatBytes(file.size)})</span>`;
+                    dropArea.classList.add('border-red-300', 'bg-red-50');
+                    dropArea.classList.remove('border-gray-300', 'hover:bg-gray-50');
+                } else {
+                    dropArea.classList.remove('border-red-300', 'bg-red-50');
+                    dropArea.classList.add('border-gray-300', 'hover:bg-gray-50');
+                }
+                
+                promptEl.classList.add('hidden');
+                infoEl.classList.remove('hidden');
+                infoEl.classList.add('flex');
+            } else {
+                promptEl.classList.remove('hidden');
+                infoEl.classList.add('hidden');
+                infoEl.classList.remove('flex');
+            }
+        }
+
+        function clearFileInput(event) {
+            // Stop button click from bubbling up to label which would open file dialog
+            if(event) event.preventDefault(); 
+            
+            const input = document.getElementById('input-file');
+            input.value = '';
+            
+            // Trigger change manual
+            handleFileSelect(input);
+            
+            const dropArea = document.getElementById('file-drop-area');
+            dropArea.classList.remove('border-red-300', 'bg-red-50');
+            dropArea.classList.add('border-gray-300', 'hover:bg-gray-50');
+        }
+
+        // Setup Drag & Drop
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropArea = document.getElementById('file-drop-area');
+            const fileInput = document.getElementById('input-file');
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.add('border-gray-900', 'bg-gray-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.remove('border-gray-900', 'bg-gray-50');
+                }, false);
+            });
+
+            dropArea.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if(files.length > 0) {
+                    fileInput.files = files;
+                    handleFileSelect(fileInput);
+                }
+            }, false);
+        });
+
+        function toggleInputType() {
+            const isFile = document.querySelector('input[name="input_type"]:checked').value === 'file';
+            document.getElementById('input-text-container').classList.toggle('hidden', isFile);
+            document.getElementById('input-file-container').classList.toggle('hidden', !isFile);
+        }
+
         function switchCipher(cipher) {
             currentCipher = cipher;
 
@@ -329,16 +482,34 @@
         }
 
         function processAction(action) {
-            const text = document.getElementById('input-text').value.trim();
-            if (!text) {
-                showError('Teks tidak boleh kosong.');
-                return;
-            }
-
+            const isFile = document.querySelector('input[name="input_type"]:checked').value === 'file';
             const formData = new FormData();
             formData.append('cipher', currentCipher);
             formData.append('action', action);
-            formData.append('text', text);
+            formData.append('inputType', isFile ? 'file' : 'text');
+
+            if (isFile) {
+                const fileInput = document.getElementById('input-file');
+                if (!fileInput.files.length) {
+                    showError('Silakan pilih file terlebih dahulu.');
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                if (file.size > 2 * 1024 * 1024) {
+                    showError('Ukuran file terlalu besar! Batas maksimal adalah 2 MB agar proses tidak memberatkan server.');
+                    return;
+                }
+                
+                formData.append('file', file);
+            } else {
+                const text = document.getElementById('input-text').value.trim();
+                if (!text) {
+                    showError('Teks tidak boleh kosong.');
+                    return;
+                }
+                formData.append('text', text);
+            }
 
             // Tambahkan key berdasarkan cipher
             switch (currentCipher) {
@@ -392,16 +563,51 @@
                 method: 'POST',
                 body: formData,
             })
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
                 document.getElementById('loading-section').classList.add('hidden');
                 document.getElementById('btn-encrypt').disabled = false;
                 document.getElementById('btn-decrypt').disabled = false;
 
-                if (data.error) {
-                    showError(data.error);
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await res.json();
+                    if (data.error) {
+                        showError(data.error);
+                    } else {
+                        showResult(data.result, data.cipher, data.action);
+                    }
                 } else {
-                    showResult(data.result, data.cipher, data.action);
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const disposition = res.headers.get('Content-Disposition');
+                        let filename = 'download';
+                        if (disposition && disposition.indexOf('attachment') !== -1) {
+                            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                            const matches = filenameRegex.exec(disposition);
+                            if (matches != null && matches[1]) { 
+                                filename = matches[1].replace(/['"]/g, '');
+                            }
+                        }
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                        
+                        document.getElementById('result-section').classList.add('hidden');
+                        document.getElementById('error-section').classList.add('hidden');
+                        
+                        const btnId = action === 'encrypt' ? 'btn-encrypt' : 'btn-decrypt';
+                        const btn = document.getElementById(btnId);
+                        const originalText = action === 'encrypt' ? 'Enkripsi' : 'Dekripsi';
+                        btn.textContent = 'Berhasil!';
+                        setTimeout(() => { btn.textContent = originalText; }, 2000);
+                    } else {
+                        showError('Gagal mendownload file.');
+                    }
                 }
             })
             .catch(err => {
