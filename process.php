@@ -180,6 +180,13 @@ try {
         } else {
             // Decrypt File ke binary aslinya
             $hexText = mapAPToHex($result);
+
+            // [FIX] Bersihkan karakter padding (seperti 'X' dari Hill Cipher) dan pastikan panjangnya genap
+            $hexText = preg_replace('/[^0-9a-fA-F]/', '', $hexText);
+            if (strlen($hexText) % 2 !== 0) {
+                $hexText = substr($hexText, 0, -1);
+            }
+
             $binaryContent = hex2bin($hexText);
             
             if ($binaryContent === false) {
