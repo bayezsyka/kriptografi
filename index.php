@@ -83,6 +83,7 @@
                 <textarea id="input-text" name="text" rows="4"
                     class="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors resize-none"
                     placeholder="Masukkan teks yang akan diproses..."></textarea>
+                <p class="text-xs text-gray-400 mt-1.5">* Catatan: Spasi, angka, dan tanda baca akan diabaikan secara otomatis oleh algoritma klasik.</p>
             </div>
 
             <!-- Input File -->
