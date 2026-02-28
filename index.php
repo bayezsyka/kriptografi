@@ -97,7 +97,7 @@
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
                             </svg>
                             <p class="mb-1 text-sm text-gray-600"><span class="font-medium text-gray-900">Klik untuk mengunggah</span> file</p>
-                            <p class="text-xs text-gray-400 mb-2">Maksimal ukuran file: 2 MB</p>
+                            <p class="text-xs text-gray-400 mb-2">Maksimal ukuran file: 100 KB</p>
                         </div>
                         
                         <!-- State: File terpilih -->
@@ -345,6 +345,45 @@
         </footer>
     </div>
 
+    <!-- Floating Mini Button (Toast) -->
+    <button id="disclaimer-toast" onclick="openDisclaimerModal()" class="hidden fixed bottom-5 right-5 z-40 bg-white border border-yellow-300 shadow-lg hover:shadow-xl rounded-full px-4 py-2.5 text-sm font-medium text-yellow-700 hover:bg-yellow-50 flex items-center gap-2 transition-all">
+        <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Info Keamanan
+    </button>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm px-4 hidden transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border-t-4 border-yellow-400">
+            <div class="p-6 sm:p-8">
+                <div class="flex items-start justify-between mb-5">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2.5">
+                        <svg class="w-7 h-7 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Term of Service & Disclaimer Keamanan
+                    </h2>
+                </div>
+                
+                <div class="text-sm text-gray-600 space-y-4 leading-relaxed mb-8">
+                    <p><strong>Peringatan Penggunaan:</strong> Kalkulator kriptografi klasik ini bertujuan <strong>hanya untuk edukasi dan pembelajaran akademis</strong>. Dilarang keras menggunakan tool ini untuk mengamankan dokumen rahasia, data finansial perusahaan, dokumen administratif, atau Data Pribadi sesungguhnya.</p>
+                    <p><strong>Kerentanan Cipher Klasik:</strong> Cipher klasik seperti Vigenere, Hill, Affine, dan Playfair <u>tidak memenuhi standar keamanan modern</u> (seperti halnya AES/RSA). Enkripsi jenis ini sangat rentan dieksploitasi melalui teknik pembobolan <em>digital forensics</em>, terutama menggunakan <strong>analisis frekuensi kemunculan huruf</strong> dan metode eksploitasi pola.</p>
+                    <p><strong>Batasan Sistem & Konfigurasi Server:</strong> Untuk menghindari kerentanan beban sistem seperti <em>Maximum Execution Time</em> akibat proses iterasi berlebihan, batas unggahan pada sistem ini ditetapkan maksimal <strong>100 KB</strong>. Sangat disarankan untuk mengaksesnya selalu melalui <strong>HTTPS/SSL</strong> untuk mencegah penyadapan.</p>
+                    <div class="bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 mt-6 text-xs text-gray-500">
+                        <strong>Pelepasan Tanggung Jawab Hukum (Disclaimer):</strong> Dengan mengakses dan menggunakan layanan ini, Anda memahami risikonya dan secara otomatis melepaskan kami selaku pembuat sistem maupun penyedia layanan dari segala pertanggungjawaban yuridis atau gugatan hukum apabila di kemudian hari terjadi kebocoran data, kerusakan file, atau insiden keamanan lainnya yang diakibatkan oleh penyalahgunaan algoritma lawas ini.
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-gray-100">
+                    <button type="button" onclick="closeDisclaimerModal()" class="bg-gray-900 text-white px-8 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 focus:ring-4 focus:ring-gray-200 transition-all w-full sm:w-auto shadow-md hover:shadow-lg">
+                        Saya Mengerti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentCipher = 'vigenere';
 
@@ -369,7 +408,7 @@
                 nameEl.textContent = file.name;
                 sizeEl.textContent = formatBytes(file.size);
                 
-                if (file.size > 2 * 1024 * 1024) {
+                if (file.size > 100 * 1024) {
                     sizeEl.innerHTML = `<span class="text-red-500 font-medium">Ukuran file terlalu besar (${formatBytes(file.size)})</span>`;
                     dropArea.classList.add('border-red-300', 'bg-red-50');
                     dropArea.classList.remove('border-gray-300', 'hover:bg-gray-50');
@@ -439,6 +478,24 @@
             }, false);
         });
 
+        // Modal Disclaimer Logic
+        function openDisclaimerModal() {
+            document.getElementById('disclaimer-modal').classList.remove('hidden');
+            document.getElementById('disclaimer-toast').classList.add('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeDisclaimerModal() {
+            document.getElementById('disclaimer-modal').classList.add('hidden');
+            document.getElementById('disclaimer-toast').classList.remove('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        // Tampilkan modal pada saat muat awal
+        window.addEventListener('DOMContentLoaded', () => {
+            openDisclaimerModal();
+        });
+
         function toggleInputType() {
             const isFile = document.querySelector('input[name="input_type"]:checked').value === 'file';
             document.getElementById('input-text-container').classList.toggle('hidden', isFile);
@@ -496,8 +553,8 @@
                 }
                 
                 const file = fileInput.files[0];
-                if (file.size > 2 * 1024 * 1024) {
-                    showError('Ukuran file terlalu besar! Batas maksimal adalah 2 MB agar proses tidak memberatkan server.');
+                if (file.size > 100 * 1024) {
+                    showError('Ukuran file terlalu besar! Batas maksimal adalah 100 KB agar proses tidak memberatkan server.');
                     return;
                 }
                 

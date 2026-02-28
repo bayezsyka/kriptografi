@@ -1,5 +1,8 @@
 <?php
 
+// Keamanan Server: Matikan display_errors agar struktur direktori dan baris kode tidak bocor jika terjadi error
+ini_set('display_errors', '0');
+
 /**
  * Process handler - memproses request enkripsi/dekripsi
  * Menerima POST request dan mengembalikan JSON response atau file download
@@ -55,10 +58,10 @@ if ($inputType === 'file') {
         exit;
     }
     
-    // Batasi maksimum ukuran file 2 MB untuk mencegah memory exhaustion (Fatal Error)
-    if ($_FILES['file']['size'] > 2 * 1024 * 1024) {
+    // Batasi maksimum ukuran file 100 KB untuk mencegah memory exhaustion (Fatal Error)
+    if ($_FILES['file']['size'] > 100 * 1024) {
         header('Content-Type: application/json');
-        echo json_encode(['error' => 'Ukuran file terlalu besar. Batas maksimal adalah 2 MB untuk menghindari kehabisan memori server.']);
+        echo json_encode(['error' => 'Ukuran file terlalu besar. Batas maksimal adalah 100 KB untuk menghindari kehabisan memori server.']);
         exit;
     }
     
@@ -179,9 +182,16 @@ try {
             echo $outputContent;
         } else {
             // Decrypt File ke binary aslinya
+            
+            // [FIX] Bug Padding Hill Cipher:
+            // Pada algoritma Hill/Playfair, teks akan ditambah karakter 'X' jika tidak kelipatan.
+            // Saat dekripsi file, kita harus menghapus 'X' di akhir agar representasi biner file 
+            // tidak memiliki sisa byte di ujungnya yang menyebabkan file hasil biner korup.
+            $result = rtrim($result, 'X');
+            
             $hexText = mapAPToHex($result);
 
-            // [FIX] Bersihkan karakter padding (seperti 'X' dari Hill Cipher) dan pastikan panjangnya genap
+            // Bersihkan sisa karakter tak valid
             $hexText = preg_replace('/[^0-9a-fA-F]/', '', $hexText);
             if (strlen($hexText) % 2 !== 0) {
                 $hexText = substr($hexText, 0, -1);
